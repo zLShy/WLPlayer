@@ -1,0 +1,19 @@
+ext {
+    coroutinesVersion = "1.3.7"
+
+    dependencies = [
+            coroutinescore   : "org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}",
+            coroutinesandroid: "org.jetbrains.kotlinx:kotlinx-coroutines-android:${coroutinesVersion}",
+            retrofit2        : "com.squareup.retrofit2:retrofit:2.9.0",
+            okhttp3          : "com.squareup.okhttp3:okhttp:4.5.0",
+            convertergson    : "com.squareup.retrofit2:converter-gson:2.8.1",
+            rxjava3          : "io.reactivex.rxjava3:rxjava:3.0.4",
+            rxandroid        : "io.reactivex.rxjava3:rxandroid:3.0.0",
+            retrofit2adapter : "com.squareup.retrofit2:adapter-rxjava3:2.9.0",
+            androidxactivity : "androidx.activity:activity-ktx:1.1.0",
+            rxpermissions    : "com.github.tbruyelle:rxpermissions:0.12",
+            websocket        : "org.java-websocket:Java-WebSocket:1.4.0",
+            cameraxcore      : "androidx.camera:camera-core:1.0.0-alpha05",
+            cameraxcamera    : "androidx.camera:camera-camera2:1.0.0-alpha05"
+    ]
+}
