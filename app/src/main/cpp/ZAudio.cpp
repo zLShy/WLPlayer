@@ -11,13 +11,13 @@ ZAudio::ZAudio(ZCallJava *callback, ZPlaystatus *playstatus, int samplerate) {
     this->sampleRate = samplerate;
     this->queen = new ZQueen(playstatus);
     this->buffer = (uint8_t *) av_malloc(samplerate * 2 * 2);
-//    sampleBuffer = static_cast<SAMPLETYPE *>(malloc( samplerate * 2 * 2));
+    sampleBuffer = static_cast<SAMPLETYPE *>(malloc(samplerate * 2 * 2));
 
-//    soundTouch = new SoundTouch();
-//    soundTouch->setSampleRate(samplerate);
-//    soundTouch->setChannels(2);
-//    soundTouch->setTempo(speed);
-//    soundTouch->setPitch(pitch);
+    soundTouch = new SoundTouch();
+    soundTouch->setSampleRate(samplerate);
+    soundTouch->setChannels(2);
+    soundTouch->setTempo(speed);
+    soundTouch->setPitch(pitch);
 }
 
 ZAudio::~ZAudio() {
@@ -41,8 +41,10 @@ void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
 
     ZAudio *wlAudio = (ZAudio *) context;
     if (wlAudio != NULL) {
-        int buffersize = wlAudio->resampleAudio();
-//        int buffersize = wlAudio->getSoundTouchData();
+//        int buffersize = wlAudio->resampleAudio();
+//        LOGE("audio --------");
+        int buffersize = wlAudio->getSoundTouchData();
+//        LOGE("size======%d", buffersize);
         if (buffersize > 0) {
             wlAudio->clock += buffersize / ((double) (wlAudio->sampleRate * 2 * 2));
             if (wlAudio->clock - wlAudio->last_tiem >= 0.1) {
@@ -51,12 +53,12 @@ void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
             }
         }
 
-        (*wlAudio->pcmBufferQueue)->Enqueue(wlAudio->pcmBufferQueue, (char *) wlAudio->buffer,
-                                            buffersize);
+        (*wlAudio->pcmBufferQueue)->Enqueue(wlAudio->pcmBufferQueue, (char *) wlAudio->sampleBuffer,
+                                            buffersize * 2 * 2);
     }
 }
 
-int ZAudio::resampleAudio() {
+int ZAudio::resampleAudio(void **pcmbuf) {
     while (playstatus != NULL && !playstatus->exit) {
         avPacket = av_packet_alloc();
         if (queen->getAvpacket(avPacket) != 0) {
@@ -129,8 +131,8 @@ int ZAudio::resampleAudio() {
                 now_time = clock;
             }
             clock = now_time;
-//            *pcmbuf = buffer;
-            LOGE("data_size is %d", data_size);
+            *pcmbuf = buffer;
+//            LOGE("data_size is %d", data_size);
 
             av_packet_free(&avPacket);
             av_free(avPacket);
@@ -306,46 +308,47 @@ void ZAudio::setVolume(int percent) {
 }
 
 void ZAudio::setSpeed(int type, float speed) {
-//
-//    this->speed = speed;
-//    if (soundTouch != NULL) {
-//        soundTouch->setTempo(speed);
-//    }
-//
+
+    this->speed = speed;
+    if (soundTouch != NULL) {
+        LOGE("speed %f",speed);
+        soundTouch->setTempo(speed);
+    }
+
 }
 
 int ZAudio::getSoundTouchData() {
-//    while (playstatus != NULL && !playstatus->exit) {
-//        out_buffer = NULL;
-//        if (finished) {
-//            finished = false;
-//            data_size = this->resampleAudio(reinterpret_cast<void **>(out_buffer));
-//            if (data_size > 0) {
-//                for (int i = 0; i < data_size / 2 + 1; i++) {
-//                    sampleBuffer[i] = (out_buffer[i * 2] | (out_buffer[i * 2 + 1] << 8));
-//                }
-//                soundTouch->putSamples(sampleBuffer, nb);
-//                num = soundTouch->receiveSamples(sampleBuffer, data_size / 4);
-//
-//            } else {
-//                soundTouch->flush();
-//            }
-//        }
-//
-//        if (num == 0) {
-//            finished = true;
-//            continue;
-//        } else {
-//            if (out_buffer == NULL) {
-//                num = soundTouch->receiveSamples(sampleBuffer, data_size / 4);
-//                if (num == 0) {
-//                    finished = true;
-//                    continue;
-//                }
-//            }
-//            return num;
-//        }
-//    }
+    while (playstatus != NULL && !playstatus->exit) {
+        out_buffer = NULL;
+        if (finished) {
+            finished = false;
+            data_size = this->resampleAudio(reinterpret_cast<void **>(&out_buffer));
+            if (data_size > 0) {
+                for (int i = 0; i < data_size / 2 + 1; i++) {
+                    sampleBuffer[i] = (out_buffer[i * 2] | (out_buffer[i * 2 + 1] << 8));
+                }
+                soundTouch->putSamples(sampleBuffer, nb);
+                num = soundTouch->receiveSamples(sampleBuffer, data_size / 4);
+
+            } else {
+                soundTouch->flush();
+            }
+        }
+
+        if (num == 0) {
+            finished = true;
+            continue;
+        } else {
+            if (out_buffer == NULL) {
+                num = soundTouch->receiveSamples(sampleBuffer, data_size / 4);
+                if (num == 0) {
+                    finished = true;
+                    continue;
+                }
+            }
+            return num;
+        }
+    }
     return 0;
 }
 

@@ -82,19 +82,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun changeTone(view: View) {
-        player.changeTone(1)
+        player.changeTone(1,1.2F)
     }
 
     fun changeSpeed(view: View) {
-        player.changeTone(2)
+        player.changeTone(2,1.5F)
     }
 
     fun changeAll(view: View) {
-        player.changeTone(3)
+        player.changeTone(3,2.0F)
     }
 
     fun normalPlay(view: View) {
-        player.changeTone(0)
+        player.changeTone(0,1.0F)
     }
 
 

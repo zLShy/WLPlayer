@@ -8,7 +8,7 @@
 #include "ZCallJava.h"
 #include "ZPlaystatus.h"
 #include "ZQueen.h"
-//#include "SoundTouch.h"
+#include "SoundTouch.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -16,7 +16,7 @@ extern "C" {
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 };
-//using namespace soundtouch;
+using namespace soundtouch;
 
 class ZAudio {
 
@@ -64,11 +64,11 @@ public:
     SLEnvironmentalReverbSettings reverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
 
 
-//    SoundTouch *soundTouch = NULL;
+    SoundTouch *soundTouch = NULL;
     uint8_t *out_buffer = NULL;//改变声音入参出参
 //    波处理完了没
     bool finished = true;
-//    SAMPLETYPE *sampleBuffer = NULL;//新的缓冲区
+    SAMPLETYPE *sampleBuffer = NULL;//新的缓冲区
 //    新波的实际个数
     int nb = 0;
     int num = 0;
@@ -84,7 +84,7 @@ public:
 
     int getCurrentSampleRateForOpensles(int sample_rate);
 
-    int resampleAudio();
+    int resampleAudio(void **pcmbuf);
 
     void selectChannel(int type);
 

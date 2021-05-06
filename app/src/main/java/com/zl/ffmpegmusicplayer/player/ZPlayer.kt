@@ -28,15 +28,11 @@ class ZPlayer {
 
 
     fun onCallTimeInfo(current: Int, total: Int) {
-        Log.e("FFmpeg", "${current} / ${total}")
         mPlayListener?.onCurrentTime(current, total)
     }
 
     fun onParpared() {
-        Log.e("FFmpeg", "start")
         if (mSource == null) {
-            Log.e("FFmpeg", "null source")
-
             return
         }
 
@@ -73,8 +69,8 @@ class ZPlayer {
         native_changeVol(vol)
     }
 
-    fun changeTone(type: Int) {
-        native_changeTone(type, 1.5F)
+    fun changeTone(type: Int,speed: Float) {
+        native_changeTone(type, speed)
     }
 
 }
