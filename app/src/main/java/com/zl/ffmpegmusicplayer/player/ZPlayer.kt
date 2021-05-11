@@ -3,7 +3,8 @@ package com.zl.ffmpegmusicplayer.player
 import android.util.Log
 import com.zl.ffmpegmusicplayer.listener.IPlayListener
 import com.zl.ffmpegmusicplayer.listener.WlOnParparedListener
-import java.lang.Exception
+import com.zl.ffmpegmusicplayer.opengl.HGLSurfaceView
+import com.zl.ffmpegmusicplayer.opengl.ZGLSurfaceView
 import kotlin.concurrent.thread
 
 class ZPlayer {
@@ -11,6 +12,7 @@ class ZPlayer {
     var mSource: String? = null;
     var mOnParparedListener: WlOnParparedListener? = null
     var mPlayListener: IPlayListener? = null
+    private var mSurfaceView: HGLSurfaceView? = null
 
     companion object {
         // Used to load the 'native-lib' library on application startup.
@@ -26,6 +28,10 @@ class ZPlayer {
         }
     }
 
+    fun onCallLoad(load: Boolean) {
+
+//        native   网络不行     再       肯定有
+    }
 
     fun onCallTimeInfo(current: Int, total: Int) {
         mPlayListener?.onCurrentTime(current, total)
@@ -35,7 +41,7 @@ class ZPlayer {
         if (mSource == null) {
             return
         }
-
+        Log.e("ZPlayer", "start")
         thread {
             native_parpared(mSource!!)
         }
@@ -47,6 +53,7 @@ class ZPlayer {
     external fun native_seek(seconds: Int)
     external fun native_changeVol(percent: Int)
     external fun native_changeTone(type: Int, speed: Float)
+    external fun native_release()
     fun leftPlay() {
         native_channel_select(0)
     }
@@ -69,8 +76,25 @@ class ZPlayer {
         native_changeVol(vol)
     }
 
-    fun changeTone(type: Int,speed: Float) {
+    fun changeTone(type: Int, speed: Float) {
         native_changeTone(type, speed)
     }
 
+    fun setsurfaceView(zsurface: HGLSurfaceView) {
+        mSurfaceView = zsurface
+    }
+
+    fun onCallRenderYUV(
+        width: Int,
+        height: Int,
+        y: ByteArray,
+        u: ByteArray,
+        v: ByteArray
+    ) {
+//        opengl  的java版本
+        Log.e("ZP", "video call back")
+        if (this.mSurfaceView != null) {
+            this.mSurfaceView?.setYuvData(width, height, y, u, v)
+        }
+    }
 }

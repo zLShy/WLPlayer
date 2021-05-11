@@ -3,6 +3,7 @@ package com.zl.ffmpegmusicplayer
 import android.Manifest
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.widget.SeekBar
@@ -11,22 +12,29 @@ import com.zl.ffmpegmusicplayer.listener.PlayListener
 import com.zl.ffmpegmusicplayer.musicui.utils.DisplayUtil
 import com.zl.ffmpegmusicplayer.player.ZPlayer
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
 import kotlin.concurrent.thread
 
 class MainActivity : AppCompatActivity() {
     private var position = 0
     val player = ZPlayer()
     var totalTime = 0
+    val path = File(
+        Environment.getExternalStorageDirectory().absolutePath + File.separator + "/video",
+        "test.mp4"
+    ).absolutePath
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        player.setsurfaceView(zsurface)
         RxPermissions(this).request(
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA
         ).subscribe { aBoolean ->
-            player.mSource = "http://mn.maliuedu.com/music/dengniguilai.mp3"
+            player.mSource = path
             player.onParpared()
         }
         player.mPlayListener = object : PlayListener() {
@@ -82,19 +90,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun changeTone(view: View) {
-        player.changeTone(1,1.2F)
+        player.changeTone(1, 1.2F)
     }
 
     fun changeSpeed(view: View) {
-        player.changeTone(2,1.5F)
+        player.changeTone(2, 1.5F)
     }
 
     fun changeAll(view: View) {
-        player.changeTone(3,2.0F)
+        player.changeTone(3, 2.0F)
     }
 
     fun normalPlay(view: View) {
-        player.changeTone(0,1.0F)
+        player.changeTone(0, 1.0F)
     }
 
 

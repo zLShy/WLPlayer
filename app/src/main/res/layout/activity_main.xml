@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.zl.ffmpegmusicplayer.musicui.widget.BackgourndAnimationRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
@@ -8,28 +8,6 @@
     android:background="@drawable/ic_blackground"
     android:fitsSystemWindows="true">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolBar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:layout_alignParentTop="true"
-        android:background="@android:color/transparent"
-        app:subtitleTextAppearance="@style/netease_toolbar_subtitle"
-        app:titleTextAppearance="@style/netease_toolbar_title" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:layout_below="@id/toolBar"
-        android:background="#33ffffff" />
-
-    <include
-        android:id="@+id/discview"
-        layout="@layout/layout_discview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/rlMusicTime"
-        android:layout_below="@id/toolBar" />
 
     <LinearLayout
         android:id="@+id/maniuleft"
@@ -63,9 +41,10 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_below="@id/maniuleft"
+        android:id="@+id/zvol_ll"
         android:layout_width="match_parent"
-        android:layout_height="40dp">
+        android:layout_height="40dp"
+        android:layout_below="@id/maniuleft">
 
 
         <Button
@@ -89,14 +68,23 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="changeAll"
-            android:text="变调变速"/>
+            android:text="变调变速" />
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="normalPlay"
-            android:text="正常播放"/>
+            android:text="正常播放" />
     </LinearLayout>
+
+
+    <com.zl.ffmpegmusicplayer.opengl.HGLSurfaceView
+        android:id="@+id/zsurface"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_below="@id/zvol_ll" />
+
     <RelativeLayout
         android:id="@+id/rlMusicTime"
         android:layout_width="match_parent"
@@ -164,4 +152,4 @@
     </LinearLayout>
 
 
-</com.zl.ffmpegmusicplayer.musicui.widget.BackgourndAnimationRelativeLayout>
+</RelativeLayout>

@@ -14,6 +14,7 @@ _JavaVM *javaVM = NULL;
 ZCallJava *callJava = NULL;
 ZFFmpeg *fFmpeg = NULL;
 ZPlaystatus *playstatus = NULL;
+bool nexit = true;
 
 
 extern "C"
@@ -35,6 +36,8 @@ Java_com_zl_ffmpegmusicplayer_player_ZPlayer_native_1parpared(JNIEnv *env, jobje
                                                               jstring source_) {
 
     const char *source = env->GetStringUTFChars(source_, 0);
+    LOGE("%s", source);
+
     if (fFmpeg == NULL) {
         if (callJava == NULL) {
             callJava = new ZCallJava(javaVM, env, &thiz);
@@ -85,4 +88,29 @@ Java_com_zl_ffmpegmusicplayer_player_ZPlayer_native_1changeTone(JNIEnv *env, job
     if (fFmpeg != NULL) {
         fFmpeg->setSpeed(type, speed);
     }
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_zl_ffmpegmusicplayer_player_ZPlayer_native_1release(JNIEnv *env, jobject thiz) {
+    if(!nexit)
+    {
+        return;
+    }
+// 正在退出 只调用一次
+    nexit = false;
+    if (fFmpeg != NULL) {
+        fFmpeg->release();
+        delete (fFmpeg);
+        if(callJava != NULL)
+        {
+            delete(callJava);
+            callJava = NULL;
+        }
+        if(playstatus != NULL)
+        {
+            delete(playstatus);
+            playstatus = NULL;
+        }
+    }
+    nexit = true;
+
 }

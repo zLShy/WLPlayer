@@ -10,11 +10,14 @@ ZFFmpeg::ZFFmpeg(ZCallJava *pJava, ZPlaystatus *pPlaystatus, const char *source)
     this->playstatus = pPlaystatus;
     this->url = source;
     pthread_mutex_init(&seek_mutex, NULL);
+    pthread_mutex_init(&init_mutex, NULL);
+
 }
 
 ZFFmpeg::~ZFFmpeg() {
 
     pthread_mutex_destroy(&seek_mutex);
+    pthread_mutex_destroy(&init_mutex);
 }
 
 void *decodeFFmpeg(void *data) {
@@ -31,7 +34,7 @@ void ZFFmpeg::parpared() {
 
 //初始化FFmpeg函数 线程运行
 void ZFFmpeg::decodeFFmpegThread() {
-
+    pthread_mutex_lock(&init_mutex);
     av_register_all();
     avformat_network_init();
 
@@ -57,32 +60,32 @@ void ZFFmpeg::decodeFFmpegThread() {
                 audio->time_base = pFormatContext->streams[i]->time_base;
                 duration = audio->duration;
             }
+        } else if (pFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            if (video == NULL) {
+                video = new ZVideo(callJava, playstatus);
+                video->streamIndex = i;
+                video->parameters = pFormatContext->streams[i]->codecpar;
+
+                video->time_base = pFormatContext->streams[i]->time_base;
+                int num = pFormatContext->streams[i]->r_frame_rate.num;//分子
+                int den = pFormatContext->streams[i]->r_frame_rate.den;//分母
+                if (num != 0 && den != 0) {
+                    int fps = num / den;
+                    video->default_time = 1.0 / fps;//秒
+                }
+            }
         }
     }
-//AVCodec是存储编解码器信息的结构体
-    AVCodec *codec = avcodec_find_decoder(audio->parameters->codec_id);
-    if (!codec) {
-        LOGE("获取编解码信息失败");
-        return;
-    }
-//初始化解码器上下文
-    audio->codecContext = avcodec_alloc_context3(codec);
 
-    if (!audio->codecContext) {
-        LOGE("初始化解码器上下文失败");
-        return;
+    if (audio != NULL) {
+        getCodecContext(audio->parameters, &audio->codecContext);
     }
 
-    if (avcodec_parameters_to_context(audio->codecContext, audio->parameters) < 0) {
-        LOGE("填充编码器上下文失败");
-        return;
+    if (video != NULL) {
+        getCodecContext(video->parameters, &video->codecContext);
     }
-    if (avcodec_open2(audio->codecContext, codec, NULL) != 0) {
-        LOGE("打开解码器失败");
-        return;
-    }
-
     callJava->onCallParpared(CHILD_THREAD);
+    pthread_mutex_unlock(&init_mutex);
 }
 
 //开始解码
@@ -91,8 +94,10 @@ void ZFFmpeg::start() {
         LOGE("audio is null");
         return;
     }
+    LOGE("开始解码");
     audio->play();
-
+    video->audio = audio;
+    video->play();
     int count = 0;
     while (playstatus != NULL && !playstatus->exit) {
         if (playstatus->seek) {
@@ -106,12 +111,13 @@ void ZFFmpeg::start() {
         if (av_read_frame(pFormatContext, packet) == 0) {
             if (packet->stream_index == audio->streamIndex) {
                 count++;
-                audio->queen->putAvpacket(packet);
+                audio->queen->putAvpacket(packet);//加入音频播放列表
+            } else if (packet->stream_index == video->streamIndex) {
+                video->queen->putAvpacket(packet);//加入视频播放列表
             } else {
                 av_packet_free(&packet);
                 av_free(packet);
                 packet = NULL;
-
             }
         } else {
             av_packet_free(&packet);
@@ -168,4 +174,43 @@ void ZFFmpeg::setSpeed(int type, float speed) {
     if (audio != NULL) {
         audio->setSpeed(type, speed);
     }
+}
+
+//公共方法初始化video audio 参数
+int ZFFmpeg::getCodecContext(AVCodecParameters *codecpar, AVCodecContext **avCodecContext) {
+
+    //AVCodec是存储编解码器信息的结构体
+    AVCodec *codec = avcodec_find_decoder(codecpar->codec_id);
+    if (!codec) {
+        LOGE("获取编解码信息失败");
+        exit = true;
+        pthread_mutex_unlock(&init_mutex);
+        return -1;
+    }
+//初始化解码器上下文
+    *avCodecContext = avcodec_alloc_context3(codec);
+
+    if (!audio->codecContext) {
+        LOGE("初始化解码器上下文失败");
+        return -1;
+    }
+
+    if (avcodec_parameters_to_context(*avCodecContext, codecpar) < 0) {
+        LOGE("填充编码器上下文失败");
+        exit = true;
+        pthread_mutex_unlock(&init_mutex);
+
+        return -1;
+    }
+    if (avcodec_open2(*avCodecContext, codec, NULL) != 0) {
+        LOGE("打开解码器失败");
+        exit = true;
+        pthread_mutex_unlock(&init_mutex);
+        return -1;
+    }
+    return 0;
+}
+
+void ZFFmpeg::release() {
+
 }

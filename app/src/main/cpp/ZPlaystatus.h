@@ -10,6 +10,9 @@ class ZPlaystatus {
 public:
     bool exit;
     bool seek = false;
+    bool pause = false;
+//    正在努力加载
+    bool load = true;
 public:
     ZPlaystatus();
 };

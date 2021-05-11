@@ -20,6 +20,10 @@ public:
 
     jmethodID jmid_parpared;
     jmethodID jmid_timeinfo;
+
+    jmethodID jmid_load;
+    jmethodID jmid_renderyuv;
+
 public:
     ZCallJava(_JavaVM *javaVM, JNIEnv *env, jobject *obj);
 
@@ -28,6 +32,11 @@ public:
     void onCallParpared(int type);
 
     void onCallTimeInfo(int type, int curr, int total);
+
+    void onLoad(int i, bool b);
+
+    void onCallRenderYUV(int width, int height, uint8_t *fy, uint8_t *fu, uint8_t *fv);
+
 };
 
 
